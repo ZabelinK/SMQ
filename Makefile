@@ -1,5 +1,7 @@
 obj-m += smq.o 
-smq-y += smq_main.o smq_operations_fn.o 
+smq-y += ./src/smq_main.o ./src/smq_operations_fn.o
+
+EXTRA_CFLAGS=-I$(PWD)/include
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
