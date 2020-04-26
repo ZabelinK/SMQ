@@ -10,6 +10,7 @@
     smq_create_new_recipients_group_op - создать новую группу получателей
     smq_subscribe_on_group_op - подписаться на определенную группу сообщений
     smq_unsubsribe_from_group_op - отписаться от группы
+    smq_get_group_id_op - получить id группы по имени
 */
 
 enum smq_operations {
@@ -30,6 +31,7 @@ enum smq_result {
     SMQ_THERE_ARE_NOT_MESSAGES,
     SMQ_INVALID_GROUP_ID,
     SMQ_INVALID_MSG_ID,
+    SMQ_INVALID_GROUP_NAME,
 };
 
 struct smq_get_sh_name {
@@ -77,6 +79,13 @@ struct smq_subscribe_on_group_op {
 
 struct smq_unsubsribe_from_group_op {
     int result;
+    unsigned int group_id;
+};
+
+struct smq_get_group_id_op {
+    int result;
+    char *name;
+    unsigned int size;
     unsigned int group_id;
 };
 

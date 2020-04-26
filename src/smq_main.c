@@ -4,7 +4,11 @@
 #include <linux/kernel.h>         // Contains types, macros, functions for the kernel
 #include <linux/fs.h>             // Header for the Linux file system support
 #include <linux/uaccess.h>          // Required for the copy to user function
-
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
+#include <linux/slab.h>
+#include <linux/mman.h>
+#include <linux/mm_types.h>
 
 #include "smq_operations_user.h"
 #include "smq_operations_fn.h"
@@ -27,6 +31,8 @@ smq_operation_fn smq_operation_table[] =
 
 #define DEVICE_NAME "SharedMQDev1"
 #define  CLASS_NAME "SharedMQ1"        ///< The device class -- this is a character device driver
+
+static char* buffer;
 
 static char *name = "world";
 static int    majorNumber;                  ///< Stores the device number -- determined automatically
@@ -63,7 +69,30 @@ static long    dev_ioctl(struct file * p_file, unsigned int op_code, unsigned lo
     smq_operation_table[op_code](&param);
 
     printk(KERN_INFO "dev_ioctl called");
+    return 0;
 }
+
+static int my_fault(struct vm_fault *vmf)
+{
+    printk(KERN_EMERG "Was page fault %lu, buffer %p", vmf->pgoff, buffer);
+    vmf->page = vmalloc_to_page(buffer + (vmf->pgoff << PAGE_SHIFT));
+    get_page(vmf->page);
+
+    printk(KERN_EMERG "Was page fault");
+    return 0;
+} 
+
+static const struct vm_operations_struct my_vm_ops = {
+    .fault      = my_fault
+};
+
+static int dev_mmap (struct file * file, struct vm_area_struct * vma)
+{
+    vma->vm_ops = &my_vm_ops;
+    return 0;
+}
+
+
 
 static struct file_operations fops =
 {
@@ -73,6 +102,7 @@ static struct file_operations fops =
     .write = dev_write,
     .compat_ioctl = dev_ioctl,
     .unlocked_ioctl = dev_ioctl,
+    .mmap = dev_mmap,
 };
 
 //module_param(name, charp, S_IRUGO); 
@@ -103,7 +133,14 @@ static int __init helloBBB_init(void){
       printk(KERN_ALERT "Failed to create the device\n");
       return PTR_ERR(smqDevice);
     }
-    printk(KERN_EMERG "smq end ini4");
+
+    buffer = vmalloc(PAGE_SIZE * 50);
+
+    if (buffer == NULL) {
+        printk(KERN_EMERG "Can't allocate memory");
+    } 
+
+    printk(KERN_EMERG "smq end ini4 buffer %p, %u", buffer, PAGE_SIZE * 50);
     printk(KERN_EMERG "smq end init");
 
     return 0;

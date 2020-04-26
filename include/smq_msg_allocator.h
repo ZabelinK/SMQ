@@ -1,0 +1,21 @@
+#ifndef SMQ_MSG_ALLOCATION_H
+#define SMQ_MSG_ALLOCATION_H
+#include <linux/list.h>
+#include <asm/atomic.h>
+
+typedef unsigned long int smq_msg_id_t;
+
+typedef struct smq_msg_t {
+    smq_msg_id_t msg_id;
+    unsigned int size;
+    unsigned int offset;
+    list_head queue_node;
+    list_head global_list_node;
+    atomic_t ref_cnt;
+} smq_msg_t;
+
+bool smq_msg_allocator_init(void);
+smq_msg_t* smq_alloc_message(unsigned int size);
+void smq_free_message(smq_msg_id msg_id);
+
+#endif
