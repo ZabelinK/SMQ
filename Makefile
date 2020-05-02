@@ -1,5 +1,5 @@
 obj-m += smq.o 
-smq-y += ./src/smq_main.o ./src/smq_operations_fn.o
+smq-y += ./src/smq_main.o ./src/smq_operations_fn.o ./src/smq_msg_allocator.o
 
 EXTRA_CFLAGS=-I$(PWD)/include
 

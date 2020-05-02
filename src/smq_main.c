@@ -12,7 +12,7 @@
 
 #include "smq_operations_user.h"
 #include "smq_operations_fn.h"
-
+#include "smq_msg_allocator.h"
 
 typedef int (*smq_operation_fn)(void *);
 
@@ -72,27 +72,25 @@ static long    dev_ioctl(struct file * p_file, unsigned int op_code, unsigned lo
     return 0;
 }
 
-static int my_fault(struct vm_fault *vmf)
+static int smq_fault(struct vm_fault *vmf)
 {
-    printk(KERN_EMERG "Was page fault %lu, buffer %p", vmf->pgoff, buffer);
-    vmf->page = vmalloc_to_page(buffer + (vmf->pgoff << PAGE_SHIFT));
+    printk(KERN_EMERG "Was page fault %lu, buffer %p", vmf->pgoff, smq_get_buffer_start());
+    vmf->page = vmalloc_to_page(smq_get_buffer_start() + (vmf->pgoff << PAGE_SHIFT));
     get_page(vmf->page);
 
     printk(KERN_EMERG "Was page fault");
     return 0;
 } 
 
-static const struct vm_operations_struct my_vm_ops = {
-    .fault      = my_fault
+static const struct vm_operations_struct smq_vm_ops = {
+    .fault = smq_fault
 };
 
 static int dev_mmap (struct file * file, struct vm_area_struct * vma)
 {
-    vma->vm_ops = &my_vm_ops;
+    vma->vm_ops = &smq_vm_ops;
     return 0;
 }
-
-
 
 static struct file_operations fops =
 {
@@ -133,8 +131,6 @@ static int __init helloBBB_init(void){
       printk(KERN_ALERT "Failed to create the device\n");
       return PTR_ERR(smqDevice);
     }
-
-    buffer = vmalloc(PAGE_SIZE * 50);
 
     if (buffer == NULL) {
         printk(KERN_EMERG "Can't allocate memory");

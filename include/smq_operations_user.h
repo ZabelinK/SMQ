@@ -34,55 +34,55 @@ enum smq_result {
     SMQ_INVALID_GROUP_NAME,
 };
 
-struct smq_get_sh_name {
+struct smq_get_sh_name_t {
     int           result;
     char         *sh_name;
     unsigned int  size;
 };
 
-struct smq_alloc_msg_op {
+struct smq_alloc_msg_op_t {
     int          result;
     unsigned int size;
     unsigned int offset;
     unsigned int msg_id;
 };
 
-struct smq_free_buf_op {
+struct smq_free_buf_op_t {
     int          result;
     unsigned int msg_id;
 };
 
-struct smq_send_msg_op {
+struct smq_send_msg_op_t {
     int          result;
     unsigned int msg_id;
     unsigned int receiver_group_id;
 };
 
-struct smq_recv_msg_op {
+struct smq_recv_msg_op_t {
     int          result;
     unsigned int offset;
     unsigned int size;
     unsigned int msg_id;
 };
 
-struct smq_create_new_recioients_group_op {
+struct smq_create_new_recioients_group_op_t {
     int           result;
     char         *group_name;
     unsigned int  size;
     unsigned int  group_id;
 };
 
-struct smq_subscribe_on_group_op {
+struct smq_subscribe_on_group_op_t {
     int result;
     unsigned int group_id;
 };
 
-struct smq_unsubsribe_from_group_op {
+struct smq_unsubsribe_from_group_op_t {
     int result;
     unsigned int group_id;
 };
 
-struct smq_get_group_id_op {
+struct smq_get_group_id_op_t {
     int result;
     char *name;
     unsigned int size;
