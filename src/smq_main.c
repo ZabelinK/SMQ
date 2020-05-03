@@ -9,6 +9,7 @@
 #include <linux/slab.h>
 #include <linux/mman.h>
 #include <linux/mm_types.h>
+#include <linux/ioctl.h>
 
 #include "smq_operations_user.h"
 #include "smq_operations_fn.h"
@@ -18,14 +19,14 @@ typedef int (*smq_operation_fn)(void *);
 
 smq_operation_fn smq_operation_table[] = 
 {
-    [SMQ_GET_SH_NAME] = smq_get_sh_name_fn,
-    [SMQ_ALLOC_MSG] = smq_alloc_msg_fn,
-    [SMQ_FREE_MSG] = smq_free_buf_fn,
-    [SMQ_SEND_MSG] = smq_send_msg_fn,
-    [SMQ_RECV_MSG] = smq_recv_msg_fn,
-    [SMQ_CREATE_NEW_GROUP] = smq_create_new_recipients_group_fn,
-    [SMQ_SUBSCRIBE_ON_GROUP] = smq_subscribe_on_group_fn,
-    [SMQ_UNSUBSCRIBE_FROM_GROUP] = smq_unsubsribe_from_group_fn,
+    [IOCTL_GET_SH_NAME] = smq_get_sh_name_fn,
+    [IOCTL_ALLOC_MSG] = smq_alloc_msg_fn,
+    [IOCTL_FREE_MSG] = smq_free_buf_fn,
+    [IOCTL_SEND_MSG] = smq_send_msg_fn,
+    [IOCTL_RECV_MSG] = smq_recv_msg_fn,
+    [IOCTL_CREATE_NEW_GROUP] = smq_create_new_recipients_group_fn,
+    [IOCTL_SUBSCRIBE_ON_GROUP] = smq_subscribe_on_group_fn,
+    [IOCTL_UNSUBSCRIBE_FROM_GROUP] = smq_unsubsribe_from_group_fn,
 };
 
 
@@ -64,11 +65,10 @@ static ssize_t dev_write(struct file * p_file, const char * buf, size_t size, lo
 
 static long    dev_ioctl(struct file * p_file, unsigned int op_code, unsigned long param)
 {
-    enum smq_operations op = op_code;
+    printk(KERN_INFO "dev_ioctl called %u", op_code);
 
-    smq_operation_table[op_code](&param);
+    smq_operation_table[op_code]((void*) param);
 
-    printk(KERN_INFO "dev_ioctl called");
     return 0;
 }
 
@@ -132,11 +132,8 @@ static int __init helloBBB_init(void){
       return PTR_ERR(smqDevice);
     }
 
-    if (buffer == NULL) {
-        printk(KERN_EMERG "Can't allocate memory");
-    } 
+    smq_msg_allocator_init();
 
-    printk(KERN_EMERG "smq end ini4 buffer %p, %u", buffer, PAGE_SIZE * 50);
     printk(KERN_EMERG "smq end init");
 
     return 0;

@@ -1,5 +1,6 @@
 #ifndef SMQ_OPERATIONS_USER_H
 #define SMQ_OPERATIONS_USER_H
+#include<linux/ioctl.h>
 
 /*
     smq_get_sh_name - получить имя shared memory
@@ -13,8 +14,20 @@
     smq_get_group_id_op - получить id группы по имени
 */
 
+#define IOCTL_MAGIC_NUMBER 100
+#define IOCTL_GET_SH_NAME _IO(IOCTL_MAGIC_NUMBER, 0)
+#define IOCTL_ALLOC_MSG _IO(IOCTL_MAGIC_NUMBER, 1)
+#define IOCTL_FREE_MSG _IO(IOCTL_MAGIC_NUMBER, 2)
+#define IOCTL_SEND_MSG _IO(IOCTL_MAGIC_NUMBER, 3)
+#define IOCTL_RECV_MSG _IO(IOCTL_MAGIC_NUMBER, 4)
+#define IOCTL_CREATE_NEW_GROUP _IO(IOCTL_MAGIC_NUMBER, 5)
+#define IOCTL_SUBSCRIBE_ON_GROUP _IO(IOCTL_MAGIC_NUMBER, 6)
+#define IOCTL_UNSUBSCRIBE_FROM_GROUP _IO(IOCTL_MAGIC_NUMBER, 7)
+
+#define IOCTL_MAGIC_MAX 
+
 enum smq_operations {
-    SMQ_GET_SH_NAME,
+    SMQ_GET_SH_NAME = 0,
     SMQ_ALLOC_MSG,
     SMQ_FREE_MSG,
     SMQ_SEND_MSG,
