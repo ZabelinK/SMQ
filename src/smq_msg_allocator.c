@@ -6,9 +6,9 @@
 #include <linux/atomic.h>
 #include <linux/list.h>
 
-const unsigned int BUFFER_SIZE = PAGE_SIZE * 120;
+DEFINE_SPINLOCK(cb_spinlock);
 
-static DEFINE_SPINLOCK(cb_spinlock);
+const unsigned int BUFFER_SIZE = PAGE_SIZE * 120;
 
 static LIST_HEAD(all_msgs);
 
@@ -47,6 +47,7 @@ static void put_msg(smq_msg_t* msg)
     if (atomic_dec_return(&msg->ref_cnt) == 0) {
         next = msg->global_list_node.next;
         list_del(&msg->global_list_node);
+        list_del(&msg->queue_node);
 
         printk(KERN_INFO "Deliting, next - %p, msg - %p", next, msg);
 
@@ -56,7 +57,7 @@ static void put_msg(smq_msg_t* msg)
             return;
         }
 
-        if (next == all_msgs.prev) {
+        if (next == all_msgs.next) {
             msg = list_entry(next, struct smq_msg_t, global_list_node);
             smq_msg_allocator_cb_g.circle_buf_head = (char*) msg;
         }
@@ -103,6 +104,7 @@ smq_msg_t* smq_alloc_message(unsigned int size)
     new_msg->size = size;
     new_msg->offset = ((char*) new_msg) + sizeof(smq_msg_t) - smq_msg_allocator_cb_g.buffer;
     INIT_LIST_HEAD(&new_msg->global_list_node);
+    INIT_LIST_HEAD(&new_msg->queue_node);
     atomic_set(&new_msg->ref_cnt, 0);
     get_msg(new_msg);
 
@@ -117,6 +119,11 @@ smq_msg_t* smq_alloc_message(unsigned int size)
     printk(KERN_INFO "Allocate new message at place %u", (void*) new_msg);
 
     return new_msg;
+}
+
+smq_msg_t* smq_get_msg_struct(smq_msg_id_t msg_id)
+{
+    return (smq_msg_t* ) msg_id;
 }
 
 void smq_free_message(smq_msg_id_t msg_id)
